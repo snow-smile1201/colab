@@ -464,67 +464,113 @@ for C in C_list:
 #### 7.1 ランダムフォレスト（分類木）のライブラリをインストールして下さい。
 """
 
-
+from sklearn.ensemble import RandomForestClassifier
 
 """#### 7.2 ランダムフォレストを読み込んで、「random_forest」と言う変数名に設定して下さい。その上で引数random_stateのみ「0」を指定し、下記のようなランダムフォレストのパラメータ値を出力してください。※random_stateに数字を入れることで、結果を固定することができます。"""
 
-
+random_forest = RandomForestClassifier(random_state=0)
+random_forest
 
 """#### 7.3 fit関数を使い、学習データを使用して、ランダムフォレストの学習を行って下さい。"""
 
-
+random_forest = random_forest.fit(x_train, y_train)
+random_forest
 
 """#### 7.4 作成したモデルを用いて、新規データ（X_test）に対する予測値を出力してください。※ここが「予測」と呼ばれる処理になります。"""
 
-
+y_pred = random_forest.predict(x_test)
+y_pred
 
 """#### 7.5 混合行列を算出して下さい。"""
 
-
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test, y_pred)
+cm
 
 """#### 7.6 F値を算出して下さい。"""
 
-
+from sklearn.metrics import f1_score
+print(f1_score(y_test, y_pred))
 
 """#### 7.7 デフォルト設定だとF値があまり良くないです。ランダムフォレストの主要パラメータであるn_estimotrs（木の数）、max_depth（木の深さ）、max_features（分岐に用いる説明変数の数を設定）を変更して見ましょう。下記のようなリストを作成して下さい。"""
 
-
+n_estimators_list = [5,10,100,300]
+print(n_estimators_list)
+max_depth_list = [2,3,4]
+print(max_depth_list)
+max_feature_list = [2,3,5]
+print(max_feature_list)
 
 """#### 7.8 上記リストの組み合わせをパラメータとして設定し、ベストパラメータとその時のF値を算出して下さい。"""
 
+best_score = 0
 
+for n_estimators in n_estimators_list:
+     for max_depth in max_depth_list:
+         for max_features in max_feature_list:
+             random_forest = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, max_features=max_features, random_state=0)
+             random_forest.fit(x_train, y_train)
+             y_pred = random_forest.predict(x_test)
+             score = f1_score(y_test, y_pred)
+             if score > best_score:
+                 best_score = score
+                 best_parameters = {'n_estimators':n_estimators, 'max_depth':max_depth, 'max_features':max_features, 'best_score':best_score}
+print(best_parameters)
 
 """#### 7.9 「7.8」の結果の通りランダムフォレストの様な「アンサンブル学習」はパラメータを確りチューニングする必要がありますが、精度が高くなる傾向にあります。最後にベストパラメータ時の変数需要度を算出して下さい。"""
 
-
+random_forest = RandomForestClassifier(n_estimators=10, max_depth=3, max_features=2, random_state=0)
+random_forest.fit(x_train, y_train)
+features = x_train.columns
+importances = random_forest.feature_importances_
+indices = np.argsort(importances)
+plt.barh(range(len(indices)), importances[indices])
+plt.yticks(range(len(indices)), features[indices])
+plt.show()
 
 """#### 7.10 目的変数が量的変数の場合（回帰）を確認していきましょう。目的変数を「fare」に変更し、説明変数から削除して下さい。「age」,「sibsp」,「parch」,「sex」から「fare」を予測するモデルを作成することになります。"""
 
-
+y_train = x_train['fare']
+y_test = x_test['fare']
+x_train.drop('fare',axis=1,inplace=True)
+x_test.drop('fare',axis=1,inplace=True)
+print('x_train:',x_train.columns)
+print('x_test:',x_test.columns)
+print('y_train:',y_train.head())
+print('y_test:',y_test.head())
 
 """#### 7.11 ランダムフォレスト（回帰木）のライブラリをインストールして下さい。"""
 
-
+from sklearn.ensemble import RandomForestRegressor
 
 """#### 7.12 ランダムフォレスト（回帰木）を読み込んで、「random_forest」と言う変数名に設定して下さい。その上で引数random_stateのみ「0」を指定し、下記のようなランダムフォレストのパラメータ値を出力してください。※random_stateに数字を入れることで、結果を固定することができます。"""
 
-
+random_forest = RandomForestRegressor(random_state=0)
+random_forest
 
 """#### 7.13 fit関数を使い、学習データを使用して、ランダムフォレストの学習を行って下さい。"""
 
-
+random_forest = random_forest.fit(x_train, y_train)
+random_forest
 
 """#### 7.14 作成したモデルを用いて、新規データ（X_test）に対する予測値を出力（上から50行）してください。※ここが「予測」と呼ばれる処理になります。"""
 
-
+y_pred = random_forest.predict(x_test)
+y_pred[:50]
 
 """#### 7.15 実測値と予測値の平均絶対誤差を出力して下さい。"""
 
-
+from sklearn.metrics import mean_absolute_error
+mean_absolute_error(y_pred, y_test)
 
 """#### 7.16 実測値と予測値の散布図を下記の形で出力して下さい。"""
 
-
+plt.scatter(y_pred, y_test)
+plt.title('Scatter Plot of Predict vs Test')
+plt.xlabel('Pred')
+plt.ylabel('Test')
+plt.grid()
+plt.show()
 
 """### 8. K-meansの方法について学習します。（15問）
 
@@ -533,61 +579,75 @@ for C in C_list:
 #### 8.1 Kmeansを読み込んで下さい。
 """
 
-
+from sklearn.cluster import KMeans
 
 """#### 8.2 object型データを削除して、上から5行出力して下さい。"""
 
-
+titanic_data_except_object = titanic_data.select_dtypes(['int64', 'float64'])
+titanic_data_except_object.head()
 
 """#### 8.3 全ての欠損値に0を埋めて下さい。欠損値がなくなったことを確認して下さい。"""
 
-
+titanic_data_except_object = titanic_data_except_object.fillna(0)
+titanic_data_except_object.isnull().sum()
 
 """#### 8.4 random_state=0を指定して、Kmeans法を実行して下さい。"""
 
-
+kmeans_model = KMeans(n_clusters=4, random_state=0).fit(titanic_data_except_object)
+kmeans_model
 
 """#### 8.5 分類結果を上から50人確認して下さい。"""
 
-
+labels = kmeans_model.labels_
+labels[0:50]
 
 """#### 8.6 cluster列を作成し、クラスタリング結果を格納して下さい。"""
 
-
+titanic_data_except_object['cluster'] = labels
+titanic_add_cluster = titanic_data_except_object
+titanic_add_cluster.head()
 
 """#### 8.7 クラスタリング結果を確認していきましょう。それぞれのグループのサンプル数を出力して下さい。"""
 
-
+titanic_add_cluster['cluster'].value_counts()
 
 """#### 8.8 グループ毎に各カラムの値の平均値を出力して下さい。"""
 
-
+titanic_add_cluster.groupby('cluster').mean()
 
 """#### 8.9 「body」,「fare」,「survived」が特に分類に寄与しているようです。2次元プロットで可視化してみましょう。主成分分析のライブラリを読み込んで下さい。"""
 
-
+from sklearn.decomposition import PCA
 
 """#### 8.10　PCAを読み込んで、「pca」と言う変数名に設定して下さい。その上で引数random_stateのみ「0」を指定し、下記のようなpcaのパラメータ値を出力してください。※random_stateに数字を入れることで、結果を固定することができます。"""
 
-
+pca = PCA(random_state=0)
+pca
 
 """#### 8.11 主成分分析を実行して下さい。"""
 
-
+pca.fit(titanic_add_cluster)
 
 """#### 8.12 次元削減を実行し、featureと言う変数に格納して下さい。"""
 
-
+feature = pca.transform(titanic_add_cluster)
+feature
 
 """#### 8.13 1行目の主成分分析結果を出力して下さい。"""
 
-
+feature[0,:]
 
 """#### 8.14 主成分分析を可視化します。各ラベルに{0:'#00FF00', 1:'#FF0000', 2:'#0000FF',  3:'#ffff00'}の色を付けて、リストを作成し、colorsと言う変数に格納して下さい。確認の為上から50行表示して下さい。"""
 
-
+color_codes = {0:'#00ff00', 1:'#ff0000', 2:'#0000ff', 3:'#ffff00'}
+colors = [color_codes[x] for x in labels]
+colors[:50]
 
 """#### 8.15 第一主成分と第二主成分を下記のようにグループごとに色分けして出力して下さい。"""
 
-
-
+plt.figure(figsize=(6, 6))
+plt.scatter(feature[:, 0], feature[:, 1], color=colors)
+plt.title('Principal Component Analysis')
+plt.xlabel('First principal component')
+plt.ylabel('Second principal component')
+plt.show()
